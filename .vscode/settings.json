@@ -1,0 +1,29 @@
+// settings.json file for vim extension with relative line numbers turned  on
+{
+    "vim.insertModeKeyBindings": [
+        {
+            "before": ["j", "j"],
+            "after": ["<Esc>"]
+        }
+    ],
+    "vim.normalModeKeyBindingsNonRecursive": [
+        {
+            "before": ["<leader>", "n"],
+            "commands": [
+                "set relativenumber!",
+                "set number!"
+            ]
+        }
+    ],
+    // turn off ctrl keys for vim extension ctrl-c ctrl-v ctrl-i ctrl-z ctrl-shif-z
+    "vim.handleKeys": {
+        "<C-c>": false, // copy
+        "<C-v>": false, // paste
+        "<C-i>": false, // github copilot
+        "<C-s>": false, // save file
+        "<C-q>": false, // quit file
+        "<C-w>": false, // close tab
+        "<C-z>": false, // undo
+        "<C-s-z>": false // redo
+    }
+}
