@@ -1,4 +1,6 @@
-# Beyond Dotfiles in 100 Seconds
+# Dotfiles
+
+Readme taken from [YouTube](https://www.youtube.com/watch?v=r_MpUP6aKiQ) :)
 
 ## Steps to bootstrap a new Mac
 
@@ -59,7 +61,3 @@ cd ~/.dotfiles && brew bundle
 - Find inspiration and examples in other Doffiles repositories at [dotfiles.github.io](https://dotfiles.github.io/).
 - And last, but hopefully not least, [**take my course, *Dotfiles from Start to Finish-ish***](https://www.udemy.com/course/dotfiles-from-start-to-finish-ish/?referralCode=445BE0B541C48FE85276 "Learn Dotfiles from Start to Finish-ish on Udemy"
 )!
-
-## Thank You!
-
-I offer the most massive of thanks to [Jeff](https://twitter.com/jeffdelaney23 "Follow Jeff Delaney on Twitter") for giving me a few minutes on [his stage](https://fireship.page.link/youtube "Fireship YouTube Channel"). Please thank him for me by liking, sharing, subscribing, and taking a look at [fireship.io](https://fireship.io/ "Build and ship 🔥 your app ⚡ faster").
