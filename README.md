@@ -49,6 +49,22 @@ cd ~/.dotfiles && brew bundle
 ```
 
 
+## Windows
+
+```
+# In a VS or VSCode command prompt panel (not PS or bash, and not in the Terminal app--it continually adds the file when it's deleted):
+
+# Switch to the Windows Terminal app data directory
+cd %USERPROFILE%\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState
+
+# Remove the existing settings configuration file
+del settings.json
+
+# Make a link the customized configuration file
+mklink /H settings.json %USERPROFILE%\.dotfiles\Windows\Terminal\settings.json
+```
+
+
 ## TODO List
 
 - Learn how to use [`defaults`](https://macos-defaults.com/#%F0%9F%99%8B-what-s-a-defaults-command) to record and restore System Preferences and other macOS configurations.
