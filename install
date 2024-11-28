@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Change to the .dotfiles directory
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -14,9 +15,9 @@ fi
 # Install for the correct OS
 if [[ $os_name == "Ubuntu" ]]; then
     echo Installing for Ubuntu...
-    pushd ./ubuntu
+    pushd ./ubuntu >> /dev/null
     ./bootstrap-ubuntu.sh
-    popd
+    popd >> /dev/null
 elif [[ $os_name == "Linux" ]]; then
     echo Only Ubuntu Linux is supported currently.
 elif [[ $os_name == "Darwin" ]]; then
