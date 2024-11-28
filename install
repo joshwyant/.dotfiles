@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Change to the .dotfiles directory
+BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${BASEDIR}"
+
+# Get the current OS
+if [[ -n $(which lsb_release) ]]; then
+    os_name=$(lsb_release -si)
+else
+    os_name=$(uname -s)
+fi
+
+# Install for the correct OS
+if [[ $os_name == "Ubuntu" ]]; then
+    echo Installing for Ubuntu...
+    pushd ./ubuntu
+    ./bootstrap-ubuntu.sh
+    popd
+elif [[ $os_name == "Linux" ]]; then
+    echo Only Ubuntu Linux is supported currently.
+elif [[ $os_name == "Darwin" ]]; then
+    echo "Installing for macOS..."
+    echo "Not implemented yet."
+else
+    echo $os_name is not currently supported.
+fi
