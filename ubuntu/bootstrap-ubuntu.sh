@@ -2,7 +2,7 @@
 set -e
 
 # Personal info
-INTERACTIVE=0
+INTERACTIVE=1
 MY_USER="josh"
 GH_USERID="joshwyant"
 GH_EMAIL="1755797+joshwyant@users.noreply.github.com"
@@ -26,6 +26,7 @@ INSTALL_PYTHON=1
 ENABLE_GIT_GPG_COMMIT_SIGNING=1
 ALLOW_OPENSSH_PASSWORD_AUTH=0
 ALLOW_OPENSSH_PUBKEY_AUTH=1
+ALWAYS_UPGRADE=0  # affects default in interactive mode, but still prompted
 RUST_CHANNEL="nightly"
 
 PREREQUISITES=( curl )
@@ -101,7 +102,8 @@ add_package_source() {
 }
 
 # Python and venv; also prerequisites for gramine dev
-if [[ $INSTALL_PYTHON == 1 || $INSTALL_GRAMINE == 1 ]]; then
+PYTHON_VENV_INSTALLED=$(apt -qq list $PYTHON_VER-venv 2>/dev/null)
+if [[ ($INSTALL_PYTHON == 1 || $INSTALL_GRAMINE == 1) && -z $PYTHON_VENV_INSTALLED ]]; then
   PACKAGES="$PACKAGES $PYTHON_VER-venv"
   INSTALLING_PYTHON=1
 fi
@@ -198,9 +200,30 @@ for pkg in "${pkgs[@]}"; do
   fi
 done
 
-if [[ -n $PACKAGES_TO_INSTALL ]]; then
-  # Apply new package lists, and update software
+# Give the user a choice to upgrade packages if there are no other packages to install.
+upgrading=$ALWAYS_UPGRADE
+if [[ $INTERACTIVE == 1 && -z $PACKAGES_TO_INSTALL ]]; then
+  default_answer="y/N"
+  if [[ $ALWAYS_UPGRADE == 1 ]]; then
+    default_answer="Y/n"
+  fi
+  read -r -p "Do you want to upgrade apt packages? [$default_answer] " yesno
+  if [[ $default_answer == "y/N" && ${yesno,,} =~ ^(y|yes)$ ]]; then
+    upgrading=1
+  elif [[ $default_answer == "Y/n" && (-z $yesno || ${yesno,,} =~ ^(y|yes)$) ]]; then
+    upgrading=1
+  else
+    upgrading=0
+  fi
+fi
+
+# Update (and upgrade) if there are packages to install, or we just want to upgrade
+if [[ $upgrading == 1 || -n $PACKAGES_TO_INSTALL ]]; then
   sudo apt update && sudo apt upgrade -y
+fi
+
+if [[ -n $PACKAGES_TO_INSTALL ]]; then
+  # We already ran apt update above
   # Install software
   sudo apt install -y $PACKAGES_TO_INSTALL
 fi
