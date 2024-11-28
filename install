@@ -14,15 +14,13 @@ fi
 
 # Install for the correct OS
 if [[ $os_name == "Ubuntu" ]]; then
-    echo Installing for Ubuntu...
     pushd ./ubuntu >> /dev/null
     ./bootstrap-ubuntu.sh
     popd >> /dev/null
 elif [[ $os_name == "Linux" ]]; then
     echo Only Ubuntu Linux is supported currently.
 elif [[ $os_name == "Darwin" ]]; then
-    echo "Installing for macOS..."
-    echo "Not implemented yet."
+    echo "macOS not implemented yet."
 else
     echo $os_name is not currently supported.
 fi

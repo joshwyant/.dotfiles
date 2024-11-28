@@ -198,9 +198,7 @@ for pkg in "${pkgs[@]}"; do
   fi
 done
 
-if [[ -z $PACKAGES_TO_INSTALL ]]; then
-  echo "All apt packages are already installed."
-else
+if [[ -n $PACKAGES_TO_INSTALL ]]; then
   # Apply new package lists, and update software
   sudo apt update && sudo apt upgrade -y
   # Install software
