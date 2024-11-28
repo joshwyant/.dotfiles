@@ -2,7 +2,7 @@
 set -e
 
 # Personal info
-INTERACTIVE=1
+INTERACTIVE=${INTERACTIVE:-1}
 MY_USER="josh"
 GH_USERID="joshwyant"
 GH_EMAIL="1755797+joshwyant@users.noreply.github.com"
