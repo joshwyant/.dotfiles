@@ -67,6 +67,7 @@ sudo apt update && sudo apt upgrade -y
 # Install software
 sudo apt install -y \
   git build-essential tmux vim \
+  python3.12-venv \
   cpuid \
   openssh-server \
   docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
