@@ -359,3 +359,7 @@ if [[ $NEED_RESTART == 1 ]]; then
     fi
   fi
 fi
+
+if [[ $INTERACTIVE == 1 ]]; then
+  echo "Finished!"
+fi
