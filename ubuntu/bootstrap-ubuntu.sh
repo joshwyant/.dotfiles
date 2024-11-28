@@ -33,13 +33,6 @@ add_package_source \
   docker.asc \
   docker.list
 
-# Brave Browser
-add_package_source \
-  https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg \
-  https://brave-browser-apt-release.s3.brave.com/ stable main \
-  brave-browser-archive-keyring.gpg \
-  brave-browser-release.list
-
 # Gramine
 add_package_source \
   https://packages.gramineproject.io/gramine-keyring-$(lsb_release -sc).gpg \
@@ -54,29 +47,57 @@ add_package_source \
   intel-sgx-deb.asc \
   intel-sgx.list
 
-# VSCode
-add_package_source \
-  https://packages.microsoft.com/keys/microsoft.asc \
-  https://packages.microsoft.com/repos/code stable main \
-  packages.microsoft.asc \
-  vscode.list
+# Don't install these on WSL
+if ! uname -r | grep -qi "microsoft"; then
+  # VSCode
+  add_package_source \
+    https://packages.microsoft.com/keys/microsoft.asc \
+    https://packages.microsoft.com/repos/code stable main \
+    packages.microsoft.asc \
+    vscode.list
+
+  # Brave Browser
+  add_package_source \
+    https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg \
+    https://brave-browser-apt-release.s3.brave.com/ stable main \
+    brave-browser-archive-keyring.gpg \
+    brave-browser-release.list
+fi
 
 # Apply new package lists, and update software
 sudo apt update && sudo apt upgrade -y
 
+# Figure out python version
+if [[ $(lsb_release -sc) == "noble" ]]; then
+  # Ubuntu 24.04
+  PYTHON_VER=python3.12
+elif [[ $(lsb_release -sc) == "jammy" ]]; then
+  # Ubuntu 22.04
+  PYTHON_VER=python3.10
+else
+  echo "Unsupported release $(lsb_release -sc)!"
+  exit
+fi
+
 # Install software
 sudo apt install -y \
   git build-essential tmux vim \
-  python3.12-venv \
+  $PYTHON_VER-venv \
   cpuid \
   openssh-server \
   docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
-  brave-browser \
   libsgx-quote-ex libsgx-dcap-ql \
   libsgx-dcap-quote-verify-dev libsgx-dcap-default-qpl-dev \
   gramine \
-  pkg-config libssl-dev protobuf-compiler \
-  code
+  pkg-config libssl-dev protobuf-compiler
+
+# Additional GUI applications if not WSL
+if uname -r | grep -qi "microsoft"; then
+  echo "Running under WSL"
+else
+  sudo apt install -y \
+    code brave-browser
+fi
 
 # Configure docker
 sudo usermod -aG docker $USER
@@ -143,4 +164,12 @@ if [[ ! -f ~/.vimrc ]]; then
 fi
 if [[ ! -f ~/.tmux.conf ]]; then
   ln -s $(readlink -f ../.tmux.conf) ~/.tmux.conf
+fi
+
+mkdir -p ~/.gnupg
+if [[ ! -f ~/.gnupg/gpg.conf ]]; then
+  ln -s $(readlink -f ../.gnupg/gpg.conf) ~/.gnupg/gpg.conf
+fi
+if [[ ! -f ~/.gnupg/gpg-agent.conf ]]; then
+  ln -s $(readlink -f ../.gnupg/gpg-agent.conf) ~/.gnupg/gpg-agent.conf
 fi
