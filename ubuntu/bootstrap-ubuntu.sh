@@ -11,7 +11,7 @@ KEY_FILE=$HOME/Downloads/"Josh W (F31AE17F) – Secret.asc"
 TRUST_FILE=$HOME/Downloads/otrust.lst
 
 # Main packages
-EXTRA_PACKAGES="neofetch"
+EXTRA_PACKAGES="zsh neofetch"
 DEV_PACKAGES="wget curl git build-essential tmux vim protobuf-compiler"
 
 # What else to install
@@ -190,11 +190,15 @@ if [[ $INSTALL_OPENSSH_SERVER == 1 && -z $(which sshd) ]]; then
 fi
 
 # Rust is required by Fortanix EDP
-if [[ ($INSTALL_RUST == 1 || $INSTALL_FORTANIX_EDP == 1) && -z $(which rustc) ]]; then
+if [[ ($INSTALL_RUST == 1 || $INSTALL_FORTANIX_EDP == 1) && ! -f ~/.cargo/env ]]; then
   INSTALLING_RUST=1
+elif [[ -f ~/.cargo/env ]]; then
+  # Source it just in case for the next step.
+  source ~/.cargo/env
 fi
 
 if [[ $INSTALL_FORTANIX_EDP == 1 && -z $(which sgx-detect) ]]; then
+  echo "Installing fortanix."
   PACKAGES="$PACKAGES pkg-config libssl-dev protobuf-compiler"
   INSTALLING_FORTANIX_EDP=1
   RUST_CHANNEL="nightly"
@@ -349,6 +353,12 @@ sync() {
 # Link dotfiles
 sync .vimrc .. ~
 sync .tmux.conf .. ~
+
+# Use .vimrc for .config/nvim/init.vim as well
+if [[ ! -f ~/.config/nvim/init.vim ]]; then
+  mkdir -p ~/.config/nvim
+  ln -s $(readlink -f ../.vimrc) ~/.config/nvim/init.vim
+fi
 
 # Only on WSL for VSCODE: `public key decryption failed: Inappropriate ioctl for device`
 # This fix still fails (I think `public key decryption failed: Invalid IPC response`)
