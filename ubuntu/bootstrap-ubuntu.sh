@@ -3,7 +3,7 @@ set -e
 
 # Personal info
 INTERACTIVE=${INTERACTIVE:-1}
-MY_USER="josh"
+MY_USER="parallels"
 GH_USERID="joshwyant"
 GH_EMAIL="1755797+joshwyant@users.noreply.github.com"
 GIT_NAME="Josh W"
@@ -41,12 +41,20 @@ if [[ $USER != $MY_USER ]]; then
     exit
   fi
 
-  MY_USER=$USER
-  GH_USERID=$USER
-  GH_EMAIL="$USER@gmail.com"
-  GIT_NAME=$USER
-  KEY_FILE=$HOME/Downloads/Secret.asc
-  TRUST_FILE=$HOME/Downloads/otrust.lst
+  #GH_USERID=$USER
+  #GH_EMAIL="$USER@gmail.com"
+  #GIT_NAME=$USER
+  #KEY_FILE=$HOME/Downloads/Secret.asc
+  #TRUST_FILE=$HOME/Downloads/otrust.lst
+fi
+
+if [[ $MY_USER != $USER ]]; then
+  read -r -p "GitHub User ID [$GH_USERID]: " ghuserid 
+  read -r -p "GitHub Email [$GH_EMAIL]: " ghemail  
+  read -r -p "Git Name [$GIT_NAME]: " gitname
+  GH_USERID=${ghuserid:-$GH_USERID}
+  GH_EMAIL=${ghemail:-$GH_EMAIL}
+  GIT_NAME=${gitname:-$GIT_NAME}
 fi
 
 # Directory the script is located in
@@ -61,7 +69,7 @@ if uname -r | grep -qi "microsoft"; then
 fi
 
 # Ubuntu release
-RELEASE="$(lsb_release -sc)"
+RELEASE="$(lsb_release -sc && true)"
 
 # Figure out release-specific requirements such as python version
 if [[ $RELEASE == "noble" ]]; then
@@ -80,7 +88,7 @@ PACKAGES="$EXTRA_PACKAGES $DEV_PACKAGES"
 
 # Install prerequisites for this script
 for pkg in ${PREREQUISITES[@]}; do
-  if [[ -z $(apt -qq list $pkg 2>/dev/null) ]]; then
+  if [[ -z $(apt -qq list $pkg 2>/dev/null | grep installed || true) ]]; then
     sudo apt install -y $pkg
   fi
 done
@@ -102,7 +110,8 @@ add_package_source() {
 }
 
 # Python and venv; also prerequisites for gramine dev
-PYTHON_VENV_INSTALLED=$(apt -qq list $PYTHON_VER-venv 2>/dev/null)
+PYTHON_VENV_INSTALLED="$(apt -qq list "$PYTHON_VER-venv" 2>/dev/null | grep installed || true)"
+
 if [[ ($INSTALL_PYTHON == 1 || $INSTALL_GRAMINE == 1) && -z $PYTHON_VENV_INSTALLED ]]; then
   PACKAGES="$PACKAGES $PYTHON_VER-venv"
   INSTALLING_PYTHON=1
@@ -124,8 +133,8 @@ fi
 
 # SGX; also a prerequisite for Gramine
 if [[ ($INSTALL_SGX == 1 || $INSTALL_GRAMINE == 1) && ! -f /etc/sgx_default_qcnl.conf ]]; then
-  PACKAGES="$PACKAGES
-    cpuid libsgx-quote-ex libsgx-dcap-ql
+  PACKAGES="$PACKAGES \
+    cpuid libsgx-quote-ex libsgx-dcap-ql \
     libsgx-dcap-quote-verify-dev libsgx-dcap-default-qpl-dev"
 
   add_package_source \
@@ -139,7 +148,7 @@ if [[ ($INSTALL_SGX == 1 || $INSTALL_GRAMINE == 1) && ! -f /etc/sgx_default_qcnl
 fi
 
 # Gramine
-if [[ $INSTALL_GRAMINE == 1 && ! $(apt -qq list gramine 2>/dev/null) ]]; then
+if [[ $INSTALL_GRAMINE == 1 && -z $(apt -qq list gramine 2>/dev/null | grep installed || true) ]]; then
   PACKAGES="$PACKAGES gramine"
 
   add_package_source \
@@ -193,10 +202,13 @@ fi
 
 # Only install packages that are not already installed.
 PACKAGES_TO_INSTALL=""
-IFS=';' read -ra pkgs <<< "$IN"
+IFS=' ' read -ra pkgs <<< "$PACKAGES"
 for pkg in "${pkgs[@]}"; do
-  if [[ ! $(apt -qq list $pkg 2>/dev/null) ]]; then
-    PACKAGES_TO_INSTALL=$PACKAGES_TO_INSTALL $pkg
+  if [[ -z $(apt -qq list $pkg 2>/dev/null | grep installed || true) ]]; then
+    echo "$pkg will be installed."
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL $pkg"
+  else
+    echo "$pkg is already installed."
   fi
 done
 
@@ -262,7 +274,7 @@ openssh_option() {
   fi
 
   # Check if setting is incorrect, and update it
-  if [[ $(cat /etc/ssh/sshd_config | grep -i "$1 $old_val") ]]; then
+  if [[ $(cat /etc/ssh/sshd_config | grep -i "$1 $old_val" || true) ]]; then
     sudo sed -s -i "s/$1 $old_val/$1 $new_val/" /etc/ssh/sshd_config
     echo 1  # setting was changed
   else
@@ -311,7 +323,7 @@ fi
 # Install Fortanix EDP
 if [[ $INSTALLING_FORTANIX_EDP == 1 ]]; then
   # Nightly toolchain is required to be the default to install Fortanix EDP
-  if [[ ! $(rustup toolchain list | grep 'nightly.*default') ]]; then
+  if [[ -z $(rustup toolchain list | grep 'nightly.*default' || true) ]]; then
     rustup default nightly
   fi
   rustup target add x86_64-fortanix-unknown-sgx --toolchain nightly
