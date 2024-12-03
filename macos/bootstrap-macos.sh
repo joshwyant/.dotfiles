@@ -1,7 +1,14 @@
 #!/bin/bash
 set -e
 
-# TODO: Make DRY vs. Ubuntu script
+# TODO: - Make DRY vs. Ubuntu script
+#       - Add keyboard mapping
+#       - OpenSSH Server
+#       - Oh-my-zsh
+#       - Install homebrew
+#       - Mac defaults
+#       - .bashrc, .zshrc, etc.
+#       - ...
 
 # Personal info
 INTERACTIVE=${INTERACTIVE:-1}
