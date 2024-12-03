@@ -20,7 +20,9 @@ if [[ $os_name == "Ubuntu" ]]; then
 elif [[ $os_name == "Linux" ]]; then
     echo Only Ubuntu Linux is supported currently.
 elif [[ $os_name == "Darwin" ]]; then
-    echo "macOS not implemented yet."
+    pushd ./macos >> /dev/null
+    ./bootstrap-macos.sh
+    popd >> /dev/nul
 else
     echo $os_name is not currently supported.
 fi
