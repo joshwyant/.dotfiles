@@ -18,5 +18,6 @@ cask "notion"
 cask "rider"
 cask "slack"
 cask "sourcetree"
+cask "telegram"
 cask "visual-studio-code"
 
