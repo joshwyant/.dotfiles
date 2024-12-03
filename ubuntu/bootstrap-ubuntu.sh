@@ -11,7 +11,7 @@ KEY_FILE=$HOME/Downloads/"Josh W (F31AE17F) – Secret.asc"
 TRUST_FILE=$HOME/Downloads/otrust.lst
 
 # Main packages
-EXTRA_PACKAGES=""
+EXTRA_PACKAGES="neofetch"
 DEV_PACKAGES="wget curl git build-essential tmux vim protobuf-compiler"
 
 # What else to install
