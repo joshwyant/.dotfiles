@@ -198,7 +198,6 @@ elif [[ -f ~/.cargo/env ]]; then
 fi
 
 if [[ $INSTALL_FORTANIX_EDP == 1 && -z $(which sgx-detect) ]]; then
-  echo "Installing fortanix."
   PACKAGES="$PACKAGES pkg-config libssl-dev protobuf-compiler"
   INSTALLING_FORTANIX_EDP=1
   RUST_CHANNEL="nightly"
@@ -209,10 +208,7 @@ PACKAGES_TO_INSTALL=""
 IFS=' ' read -ra pkgs <<< "$PACKAGES"
 for pkg in "${pkgs[@]}"; do
   if [[ -z $(apt -qq list $pkg 2>/dev/null | grep installed || true) ]]; then
-    echo "$pkg will be installed."
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL $pkg"
-  else
-    echo "$pkg is already installed."
   fi
 done
 
@@ -340,25 +336,43 @@ mkdir -p $HOME/src
 
 sync() {
   # Link dotfiles
-  if [[ ! -f $2/$1 ]]; then
-    echo "Invalid filename $2/$1"
-    exit 1
+  if [[ ! -f $1 ]]; then
+    echo "Invalid filename $1"
+    return 1
   fi
-  if [[ ! -f $3/$1 ]]; then
-    mkdir -p $3
-    ln -s $(readlink -f $2/$1) $3/$1
+  # Does it exist as a regular file already?
+  if [[ -f $2 && ! -L $2 ]]; then
+    if [[ $INTERACTIVE == 1 ]]; then
+      read -r -p "Do you want to replace $2? dotfiles version is $( [[ $1 -nt $2 ]] && echo "newer." || echo "older!" ) [y/N] " yesno
+      if [[ ! (${yesno,,} =~ ^(y|yes)$) ]]; then
+        return 0
+      fi
+    elif [[ $1 -nt $2 ]]; then
+      echo WARNING: Replacing older $2 with dotfiles version.
+    else
+      echo $2 is newer than the dotfiles version, please resolve the conflict now and rerun.
+      return 1
+    fi
+    rm $2
   fi
+  if [[ ! -f $2 ]]; then
+    mkdir -p $(dirname $2)
+    echo linking to $(readlink -f $1) to $2
+    ln -s $(readlink -f $1) $2
+  fi
+}
+sync_home() {
+  sync ../$1 ~/$1
 }
 
 # Link dotfiles
-sync .vimrc .. ~
-sync .tmux.conf .. ~
-
-# Use .vimrc for .config/nvim/init.vim as well
-if [[ ! -f ~/.config/nvim/init.vim ]]; then
-  mkdir -p ~/.config/nvim
-  ln -s $(readlink -f ../.vimrc) ~/.config/nvim/init.vim
-fi
+sync_home .vimrc
+sync_home .tmux.conf
+sync_home .bashrc 
+sync_home .p10k.zsh 
+sync_home .zshrc 
+sync_home .zshenv 
+sync ../.vimrc ~/.config/nvim/init.vim
 
 # Only on WSL for VSCODE: `public key decryption failed: Inappropriate ioctl for device`
 # This fix still fails (I think `public key decryption failed: Invalid IPC response`)
@@ -368,9 +382,33 @@ if [[ $IS_WSL == 1 ]]; then
   echo RELOADAGENT | gpg-connect-agent
 fi
 
+# Set the shell to zsh
 if [[ $SHELL != $(which zsh) ]]; then
   chsh -s $(which zsh)
   echo "Shell changed. Log out and back in for changes to reflect."
+fi
+
+# Install ohmyzsh
+if [[ -z $ZSH ]]; then
+  sh -c "$(curl -fssl https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+fi
+
+# Install fonts for powerlevel10k
+get_font() {
+  if [[ ! -f ~/.fonts/"$1" ]]; then
+    echo "Installing font '$1'"
+    ( cd ~/.fonts && wget -q "https://github.com/romkatv/powerlevel10k-media/raw/master/$1" )
+  fi
+}
+get_font "MesloLGS NF Regular.ttf"
+get_font "MesloLGS NF Bold.ttf"
+get_font "MesloLGS NF Italic.ttf"
+get_font "MesloLGS NF Bold Italic.ttf"
+
+# Install the powerlevel10k theme
+pl10k=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+if [[ ! -d $pl10k ]]; then
+  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $pl10k
 fi
 
 if [[ $(git status -s) ]]; then
