@@ -12,7 +12,8 @@ TRUST_FILE=$HOME/Downloads/otrust.lst
 
 # Main packages
 EXTRA_PACKAGES="zsh neofetch"
-DEV_PACKAGES="wget curl git build-essential tmux vim protobuf-compiler"
+DEV_PACKAGES="wget curl git build-essential tmux neovim protobuf-compiler"
+UNINSTALL_PACKAGES="vim"
 
 # What else to install
 INSTALL_DOCKER=1
@@ -197,11 +198,19 @@ elif [[ -f ~/.cargo/env ]]; then
   source ~/.cargo/env
 fi
 
+# Get the prerequisite packages for Fortanix EDP
 if [[ $INSTALL_FORTANIX_EDP == 1 && -z $(which sgx-detect) ]]; then
   PACKAGES="$PACKAGES pkg-config libssl-dev protobuf-compiler"
   INSTALLING_FORTANIX_EDP=1
   RUST_CHANNEL="nightly"
 fi
+
+# Uninstall the unwanted packages
+for pkg in "${UNINSTALL_PACKAGES[@]}"; do
+  if [[ -n $(apt -qq list $pkg 2>/dev/null | grep installed || true) ]]; then
+    sudo apt remove -y $pkg
+  fi
+done
 
 # Only install packages that are not already installed.
 PACKAGES_TO_INSTALL=""
@@ -334,6 +343,44 @@ fi
 # Set up source repos
 mkdir -p $HOME/src
 
+# Only on WSL for VSCODE: `public key decryption failed: Inappropriate ioctl for device`
+# This fix still fails (I think `public key decryption failed: Invalid IPC response`)
+if [[ $IS_WSL == 1 ]]; then
+  sync gpg.conf ../WSL/.gnupg ~/.gnupg
+  sync gpg-agent.conf ../WSL/.gnupg ~/.gnupg
+  echo RELOADAGENT | gpg-connect-agent
+fi
+
+# Set the shell to zsh
+if [[ $SHELL != $(which zsh) ]]; then
+  chsh -s $(which zsh)
+  echo "Shell changed. Log out and back in for changes to reflect."
+fi
+
+# Install ohmyzsh
+if [[ -z $ZSH ]]; then
+  sh -c "$(curl -fssl https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+fi
+
+# Install fonts for powerlevel10k
+get_font() {
+  if [[ ! -f ~/.fonts/"$1" ]]; then
+    echo "Installing font '$1'"
+    ( cd ~/.fonts && wget -q "https://github.com/romkatv/powerlevel10k-media/raw/master/$1" )
+  fi
+}
+mkdir -p ~/.fonts
+get_font "MesloLGS NF Regular.ttf"
+get_font "MesloLGS NF Bold.ttf"
+get_font "MesloLGS NF Italic.ttf"
+get_font "MesloLGS NF Bold Italic.ttf"
+
+# Install the powerlevel10k theme
+pl10k=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+if [[ ! -d $pl10k ]]; then
+  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $pl10k
+fi
+
 sync() {
   # Link dotfiles
   if [[ ! -f $1 ]]; then
@@ -373,43 +420,6 @@ sync_home .p10k.zsh
 sync_home .zshrc 
 sync_home .zshenv 
 sync ../.vimrc ~/.config/nvim/init.vim
-
-# Only on WSL for VSCODE: `public key decryption failed: Inappropriate ioctl for device`
-# This fix still fails (I think `public key decryption failed: Invalid IPC response`)
-if [[ $IS_WSL == 1 ]]; then
-  sync gpg.conf ../WSL/.gnupg ~/.gnupg
-  sync gpg-agent.conf ../WSL/.gnupg ~/.gnupg
-  echo RELOADAGENT | gpg-connect-agent
-fi
-
-# Set the shell to zsh
-if [[ $SHELL != $(which zsh) ]]; then
-  chsh -s $(which zsh)
-  echo "Shell changed. Log out and back in for changes to reflect."
-fi
-
-# Install ohmyzsh
-if [[ -z $ZSH ]]; then
-  sh -c "$(curl -fssl https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-fi
-
-# Install fonts for powerlevel10k
-get_font() {
-  if [[ ! -f ~/.fonts/"$1" ]]; then
-    echo "Installing font '$1'"
-    ( cd ~/.fonts && wget -q "https://github.com/romkatv/powerlevel10k-media/raw/master/$1" )
-  fi
-}
-get_font "MesloLGS NF Regular.ttf"
-get_font "MesloLGS NF Bold.ttf"
-get_font "MesloLGS NF Italic.ttf"
-get_font "MesloLGS NF Bold Italic.ttf"
-
-# Install the powerlevel10k theme
-pl10k=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
-if [[ ! -d $pl10k ]]; then
-  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $pl10k
-fi
 
 if [[ $(git status -s) ]]; then
   echo ">> There are changes to the dotfiles. Please sync them in git!"
