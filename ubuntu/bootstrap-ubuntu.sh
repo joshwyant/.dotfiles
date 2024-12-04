@@ -362,10 +362,15 @@ fi
 
 # Only on WSL for VSCODE: `public key decryption failed: Inappropriate ioctl for device`
 # This fix still fails (I think `public key decryption failed: Invalid IPC response`)
-if [[ $IS_WSL == 1 ]] then
+if [[ $IS_WSL == 1 ]]; then
   sync gpg.conf ../WSL/.gnupg ~/.gnupg
   sync gpg-agent.conf ../WSL/.gnupg ~/.gnupg
   echo RELOADAGENT | gpg-connect-agent
+fi
+
+if [[ $SHELL != $(which zsh) ]]; then
+  chsh -s $(which zsh)
+  echo "Shell changed. Log out and back in for changes to reflect."
 fi
 
 if [[ $(git status -s) ]]; then
