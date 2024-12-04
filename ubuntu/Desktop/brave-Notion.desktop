@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Notion
+Exec=/opt/brave.com/brave/brave-browser --profile-directory=Default --ignore-profile-directory-if-not-exists https://www.notion.so/novapolis/065375b4af4c4c01a7d52fe7a1f9c36e
+Icon=/home/josh/.config/BraveSoftware/Brave-Browser/Default/Web Shortcut Icons/shortcut-53c5b8ded02900014c5453898781a85f.png
+URL=https://www.notion.so/novapolis/065375b4af4c4c01a7d52fe7a1f9c36e
+Comment=Open https://www.notion.so/novapolis/065375b4af4c4c01a7d52fe7a1f9c36e in a new tab in Brave.

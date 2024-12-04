@@ -411,15 +411,21 @@ sync() {
 sync_home() {
   sync ../$1 ~/$1
 }
+sync_desktop() {
+  sync ./Desktop/$1 ~/Desktop/$1
+}
 
 # Link dotfiles
+sync ../.vimrc ~/.config/nvim/init.vim
 sync_home .vimrc
 sync_home .tmux.conf
 sync_home .bashrc 
 sync_home .p10k.zsh 
 sync_home .zshrc 
 sync_home .zshenv 
-sync ../.vimrc ~/.config/nvim/init.vim
+sync_desktop brave-1Password.desktop
+sync_desktop brave-ChatGPT.desktop
+sync_desktop brave-Notion.desktop
 
 if [[ $(git status -s) ]]; then
   echo ">> There are changes to the dotfiles. Please sync them in git!"
