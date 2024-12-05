@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# TODO: - git pull if no conflict
+#         update remote after gpg import
+
 # Personal info
 INTERACTIVE=${INTERACTIVE:-1}
 MY_USER="josh"
