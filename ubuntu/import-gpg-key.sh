@@ -7,9 +7,9 @@ if [[ -z $GH_EMAIL ]]; then
     return 1
 fi
 
-IMPORTED=$(gpg --list-keys | grep $GH_EMAIL)
+IMPORTED=$(gpg --list-keys | grep $GH_EMAIL || true)
 
-if [[ ! $IMPORTED ]]; then
+if [[ -z $IMPORTED ]]; then
     if [[ $INTERACTIVE != "0" ]]; then
         read -r -p "Do you want to import your gpg key now? [Y/n] " yesno
         if [[ -n ${yesno} && ! ${yesno,,} =~ ^(y|yes)$ ]]; then
@@ -34,7 +34,7 @@ fi
 
 # Update git config
 if [[ $ENABLE_GIT_GPG_COMMIT_SIGNING ]]; then
-    if [[ ! $IMPORTED ]]; then
+    if [[ -z $IMPORTED ]]; then
         # Import the key
         gpg --import "${key_file}"
 
