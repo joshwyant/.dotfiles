@@ -317,7 +317,8 @@ if [[ $INSTALLING_RUST == 1 ]]; then
 fi
 
 # Configure SGX
-if [[ $INSTALLING_SGX == 1 ]]; then
+# Every run
+if [[ $INSTALL_SGX == 1 ]]; then
   sudo usermod -aG sgx $USER
   sudo sed -s -i 's/localhost:8081/api.trustedservices.intel.com/' /etc/sgx_default_qcnl.conf
 fi
@@ -344,7 +345,7 @@ fi
 mkdir -p $HOME/src
 
 # Enable SGX if necessary
-if [[ INSTALL_SGX == 1 && ! -f /dev/sgx_enclave ]]; then
+if [[ $INSTALL_SGX_SDK == 1 && ! -f /dev/sgx_enclave ]]; then
   if [[  ! -d $HOME/src/sgx-software-enable ]]; then
     pushd $HOME/src > /dev/null
     git clone https://github.com/intel/sgx-software-enable.git
@@ -355,11 +356,13 @@ if [[ INSTALL_SGX == 1 && ! -f /dev/sgx_enclave ]]; then
   sgx_enable=$HOME/src/sgx-software-enable/sgx_enable
   sgx_status=$($sgx_enable --status)
   if echo $sgx_status | grep "Intel SGX is disabled and can be enabled using this utility"; then
-    $sgx_enable
+    sudo $sgx_enable
+    NEED_RESTART=1
+  elif echo $sgx_status | grep "after the system is rebooted"; then
     NEED_RESTART=1
   fi
 fi
-
+ 
 # Only on WSL for VSCODE: `public key decryption failed: Inappropriate ioctl for device`
 # This fix still fails (I think `public key decryption failed: Invalid IPC response`)
 if [[ $IS_WSL == 1 ]]; then
@@ -431,18 +434,28 @@ sync_home() {
 sync_desktop() {
   sync ./Desktop/$1 ~/Desktop/$1
 }
+sync_to_dir() {
+  sync $1 $2/$(basename -- $1)
+}
+sync_vscode() {
+  sync_to_dir ../.vscode/$1 ~/.config/Code/User/
+}
 
 # Link dotfiles
 sync ../.vimrc ~/.config/nvim/init.vim
+sync_vscode settings.json
 sync_home .vimrc
 sync_home .tmux.conf
-sync_home .bashrc 
-sync_home .p10k.zsh 
-sync_home .zshrc 
-sync_home .zshenv 
+sync_home .bashrc
+sync_home .p10k.zsh
+sync_home .zshrc
+sync_home .zshenv
 sync_desktop brave-1Password.desktop
 sync_desktop brave-ChatGPT.desktop
 sync_desktop brave-Notion.desktop
+# TODO: Icons for above
+
+code --install-extension "vscodevim.vim" >/dev/null
 
 if [[ $(git status -s) ]]; then
   echo ">> There are changes to the dotfiles. Please sync them in git!"
