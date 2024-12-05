@@ -318,7 +318,7 @@ fi
 
 # Configure SGX
 # Every run
-if [[ $INSTALL_SGX == 1 ]]; then
+if [[ $INSTALL_SGX_SDK == 1 ]]; then
   sudo usermod -aG sgx $USER
   sudo sed -s -i 's/localhost:8081/api.trustedservices.intel.com/' /etc/sgx_default_qcnl.conf
 fi
