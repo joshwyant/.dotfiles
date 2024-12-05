@@ -89,12 +89,11 @@ source $ZSH/oh-my-zsh.sh
 # export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='nvim'
-# fi
-export EDITOR='nvim'
+if [[ $TERM != "xterm-256color" || -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+else
+  export EDITOR='nvim'
+fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch $(uname -m)"
@@ -112,15 +111,17 @@ export EDITOR='nvim'
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 bindkey -v
 autoload -Uz compinit
 compinit
 
 # To customize prompt, run `p10k configure` or edit ~/.dotfiles/.p10k.zsh.
-if [[ $TERM == "xterm-256color" && $TERM_PROGRAM != "vscode" ]]; then
+if [[ $TERM_PROGRAM == "vscode" ]]; then
+  [[ ! -f ~/.dotfiles/.p10k.zsh.unicode ]] || source ~/.dotfiles/.p10k.zsh.unicode
+elif [[ $TERM == "xterm-256color" ]]; then
   [[ ! -f ~/.dotfiles/.p10k.zsh.icons ]] || source ~/.dotfiles/.p10k.zsh.icons
 else
-  [[ ! -f ~/.dotfiles/.p10k.zsh ]] || source ~/.dotfiles/.p10k.zsh
+  [[ ! -f ~/.dotfiles/.p10k.zsh.ascii ]] || source ~/.dotfiles/.p10k.zsh.ascii
 fi
