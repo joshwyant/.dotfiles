@@ -337,11 +337,28 @@ if [[ $INSTALLING_FORTANIX_EDP == 1 ]]; then
   fi
   rustup target add x86_64-fortanix-unknown-sgx --toolchain nightly
   cargo install fortanix-sgx-tools sgxs-tools
-  sgx-detect
+  # sgx-detect
 fi
 
 # Set up source repos
 mkdir -p $HOME/src
+
+# Enable SGX if necessary
+if [[ INSTALL_SGX == 1 && ! -f /dev/sgx_enclave ]]; then
+  if [[  ! -d $HOME/src/sgx-software-enable ]]; then
+    pushd $HOME/src > /dev/null
+    git clone https://github.com/intel/sgx-software-enable.git
+    cd sgx-software-enable
+    make
+    popd > /dev/null
+  fi
+  sgx_enable=$HOME/src/sgx-software-enable/sgx_enable
+  sgx_status=$($sgx_enable --status)
+  if echo $sgx_status | grep "Intel SGX is disabled and can be enabled using this utility"; then
+    $sgx_enable
+    NEED_RESTART=1
+  fi
+fi
 
 # Only on WSL for VSCODE: `public key decryption failed: Inappropriate ioctl for device`
 # This fix still fails (I think `public key decryption failed: Invalid IPC response`)
