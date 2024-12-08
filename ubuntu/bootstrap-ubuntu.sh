@@ -3,6 +3,8 @@ set -e
 
 # TODO: - git pull if no conflict
 #         update remote after gpg import
+#         oh my zsh plugins
+#         nvim plugins
 
 # Personal info
 INTERACTIVE=${INTERACTIVE:-1}
@@ -14,9 +16,9 @@ KEY_FILE=$HOME/Downloads/"Josh W (F31AE17F) – Secret.asc"
 TRUST_FILE=$HOME/Downloads/otrust.lst
 
 # Main packages
-EXTRA_PACKAGES="zsh neofetch"
+EXTRA_PACKAGES="zsh neofetch htop"
 DEV_PACKAGES="wget curl git build-essential tmux neovim protobuf-compiler"
-UNINSTALL_PACKAGES="vim"
+UNINSTALL_PACKAGES=""
 
 # What else to install
 INSTALL_DOCKER=1
@@ -67,12 +69,14 @@ cd "${BASEDIR}"
 
 # Windows Subsystem for Linux
 # Don't install GUI apps on WSL
-if uname -r | grep -qi "microsoft"; then
+if [[ $(uname -r | grep -qi "microsoft" || true) == 1 ]]; then
   IS_WSL=1
+fi
+if [[ $IS_WSL == 1 || $(systemctl get-default) == "multi-user" ]]
   INSTALL_GUI_APPS=0
 fi
 
-# Ubuntu release
+# ubuntu release
 RELEASE="$(lsb_release -sc && true)"
 
 # Figure out release-specific requirements such as python version
@@ -274,15 +278,16 @@ if [[ $INSTALLING_OPENSSH_SERVER == 1 ]]; then
 fi
 
 openssh_option() {
+  set -x
   # Uncomment the option
   sudo sed -s -i "s/#$1/$1/" /etc/ssh/sshd_config
 
   # Change from no to yes or vice-versa
-  old_val="yes"
-  new_val="no"
-  if [[ $2 && $2 != "no" ]]; then
-    old_val="no"
-    new_val="yes"
+  old_val="no"
+  new_val="yes"
+  if [[ $2 != 1 ]]; then
+    old_val="yes"
+    new_val="no"
   fi
 
   # Check if setting is incorrect, and update it
@@ -298,8 +303,10 @@ openssh_option() {
 if [[ $INSTALL_OPENSSH_SERVER == 1 ]]; then
   pass_auth_changed=$(openssh_option PasswordAuthentication $ALLOW_OPENSSH_PASSWORD_AUTH)
   key_auth_changed=$(openssh_option PubkeyAuthentication $ALLOW_OPENSSH_PUBKEY_AUTH)
+  set +x
   # Restart ssh server if any settings changed
   if [[ $pass_auth_changed == 1 || $key_auth_changed == 1 ]]; then
+    sudo systemctl daemon-reload
     sudo systemctl try-reload-or-restart ssh
   fi
   ssh-import-id-gh $GH_USERID 2>/dev/null
@@ -402,6 +409,12 @@ get_font "MesloLGS NF Bold Italic.ttf"
 pl10k=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
 if [[ ! -d $pl10k ]]; then
   git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $pl10k
+fi
+
+# Install the TMUX Package Manager
+tpmdir=~/.tmux/plugins/tpm
+if [[ ! -d $tpmdir ]]; then
+  git clone https://github.com/tmux-plugins/tpm $tpmdir
 fi
 
 sync() {

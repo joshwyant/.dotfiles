@@ -111,17 +111,10 @@ fi
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-# [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 bindkey -v
 autoload -Uz compinit
 compinit
 
-# To customize prompt, run `p10k configure` or edit ~/.dotfiles/.p10k.zsh.
-if [[ $TERM_PROGRAM == "vscode" ]]; then
-  [[ ! -f ~/.dotfiles/.p10k.zsh.unicode ]] || source ~/.dotfiles/.p10k.zsh.unicode
-elif [[ $TERM == "xterm-256color" ]]; then
-  [[ ! -f ~/.dotfiles/.p10k.zsh.icons ]] || source ~/.dotfiles/.p10k.zsh.icons
-else
-  [[ ! -f ~/.dotfiles/.p10k.zsh.ascii ]] || source ~/.dotfiles/.p10k.zsh.ascii
-fi
+alias ed="tmux split -b -l 70% '$EDITOR .'\\; send-keys ':vs .' C-m"
