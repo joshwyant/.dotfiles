@@ -4,7 +4,7 @@
 :set tabstop=2
 :set softtabstop=2
 :set shiftwidth=2
-:set mouse=
+:set mouse=a
 
 " Check TERM variable and adjust settings
 if $TERM != "xterm-256color"

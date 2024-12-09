@@ -118,3 +118,5 @@ autoload -Uz compinit
 compinit
 
 alias ed="tmux split -b -l 70% '$EDITOR .'\\; send-keys ':vs .' C-m"
+alias np="cd ~/src/novapolis && ./tmux.sh"
+alias df="cd ~/.dotfiles && tmux new-session -A -s dotfiles"
