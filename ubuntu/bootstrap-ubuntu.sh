@@ -5,6 +5,9 @@ set -e
 #         update remote after gpg import
 #         oh my zsh plugins
 #         nvim plugins
+#         gnome terminal catppuccin theme:
+#             curl -L https://raw.githubusercontent.com/catppuccin/gnome-terminal/v1.0.0/install.py | python3 -
+#         Remove cargo from .zshrc if rust is not installed
 
 # Personal info
 INTERACTIVE=${INTERACTIVE:-1}
@@ -12,6 +15,7 @@ MY_USER="josh"
 GH_USERID="joshwyant"
 GH_EMAIL="1755797+joshwyant@users.noreply.github.com"
 GIT_NAME="Josh W"
+SSH_KEY_REQUIRE_PASSWORD=1
 KEY_FILE=$HOME/Downloads/"Josh W (F31AE17F) – Secret.asc"
 TRUST_FILE=$HOME/Downloads/otrust.lst
 
@@ -21,14 +25,14 @@ DEV_PACKAGES="wget curl git build-essential tmux neovim protobuf-compiler"
 UNINSTALL_PACKAGES=""
 
 # What else to install
-INSTALL_DOCKER=1
-INSTALL_GUI_APPS=1
+INSTALL_DOCKER=0
+INSTALL_GUI_APPS=0
 INSTALL_OPENSSH_SERVER=1
-INSTALL_SGX_SDK=1
-INSTALL_GRAMINE=1
-INSTALL_FORTANIX_EDP=1
-INSTALL_RUST=1
-INSTALL_PYTHON=1
+INSTALL_SGX_SDK=0
+INSTALL_GRAMINE=0
+INSTALL_FORTANIX_EDP=0
+INSTALL_RUST=0
+INSTALL_PYTHON=0
 ENABLE_GIT_GPG_COMMIT_SIGNING=1
 ALLOW_OPENSSH_PASSWORD_AUTH=0
 ALLOW_OPENSSH_PUBKEY_AUTH=1
@@ -72,7 +76,7 @@ cd "${BASEDIR}"
 if [[ $(uname -r | grep -qi "microsoft" || true) == 1 ]]; then
   IS_WSL=1
 fi
-if [[ $IS_WSL == 1 || $(systemctl get-default) == "multi-user" ]]
+if [[ $IS_WSL == 1 || $(systemctl get-default) == "multi-user" ]]; then
   INSTALL_GUI_APPS=0
 fi
 
@@ -263,7 +267,12 @@ fi
 
 # Configure SSH
 if [[ ! -f $HOME/.ssh/id_ed25519 ]]; then
-  ssh-keygen -t ed25519 -q -f "$HOME/.ssh/id_ed25519" -N "" -C "${GH_EMAIL}"
+  if [[ $SSH_KEY_REQUIRE_PASSWORD == 1 ]]; then
+    SSH_OPTS=""
+  else
+    SSH_OPTS="-N \"\""
+  fi
+  ssh-keygen -t ed25519 -q -f "$HOME/.ssh/id_ed25519" $SSH_OPTS -C "${GH_EMAIL}"
   cat ~/.ssh/id_ed25519.pub
   if [[ $INTERACTIVE == 1 ]]; then
     read -n 1 -p "Save the SSH public key in GitHub and in remote authorized_keys files, and press any key to continue"
